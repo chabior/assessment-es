@@ -1,0 +1,65 @@
+framework:
+  secret: S0ME_SECRET
+  session: true
+  templating:
+      engines: ['twig']
+
+
+services:
+  _defaults:
+      autowire: true
+      autoconfigure: true
+      public: false
+
+  App\:
+      resource: '../src/*'
+      exclude: '../src/{Model,ES,Controller,Infrastructure,Resources,DoctrineMigrations,Kernel.php}'
+
+  App\Controller\:
+      resource: '../src/Controller'
+      tags: ['controller.service_arguments']
+
+  App\ES\EventStore:
+      arguments: ['@Doctrine\DBAL\Driver\Connection']
+
+  App\ES\CommandBus:
+      calls:
+         - ['onCommand', ['App\Model\Command\Login', '@App\Model\Command\LoginHandler']]
+         - ['onCommand', ['App\Model\Command\Register', '@App\Model\Command\RegisterHandler']]
+         - ['onCommand', ['App\Model\Command\MakeDeposit', '@App\Model\Command\MakeDepositHandler']]
+         - ['onCommand', ['App\Model\Command\Spin', '@App\Model\Command\SpinHandler']]
+
+  App\ES\EventBus:
+      calls:
+          - ['addListener', ['App\Model\Event\Registered', ['@App\Projection\PlayerProjection', 'onRegistered']]]
+          - ['addListener', ['App\Model\Event\RealMoneyAdded', ['@App\Projection\PlayerProjection', 'onRealMoneyAdded']]]
+          - ['addListener', ['App\Model\Event\RealMoneySubtracted', ['@App\Projection\PlayerProjection', 'onRealMoneySubtracted']]]
+          - ['addListener', ['App\Model\Event\BonusMoneyAdded', ['@App\Projection\PlayerProjection', 'onBonusMoneyAdded']]]
+          - ['addListener', ['App\Model\Event\BonusMoneySubtracted', ['@App\Projection\PlayerProjection', 'onBonusMoneySubtracted']]]
+          - ['addListener', ['App\Model\Event\DepositMade', ['@App\Projection\PlayerProjection', 'onDepositMade']]]
+          - ['addListener', ['App\Model\Event\BonusApplied', ['@App\Projection\PlayerProjection', 'onBonusApplied']]]
+
+  App\Infrastructure\PlayerRepository:
+      arguments: ['@App\ES\EventStore']
+
+  App\Infrastructure\BonusRepository: ~
+
+  App\Model\Command\LoginHandler:
+      arguments:
+          - '@App\Infrastructure\PlayerRepository'
+          - '@App\Infrastructure\BonusRepository'
+
+  App\Model\Command\RegisterHandler:
+      arguments: ['@App\Infrastructure\PlayerRepository']
+
+  App\Model\Command\MakeDepositHandler:
+      arguments: ['@App\Infrastructure\PlayerRepository', '@App\Infrastructure\BonusRepository']
+
+  App\Model\Command\SpinHandler:
+      arguments: ['@App\Infrastructure\PlayerRepository']
+
+  App\Projection\PlayerProjection:
+      arguments: ['@Doctrine\DBAL\Driver\Connection']
+
+parameters:
+  db_url: '%env(DATABASE_URL)%'

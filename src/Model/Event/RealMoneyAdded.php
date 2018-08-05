@@ -36,6 +36,11 @@ class RealMoneyAdded
         $this->wallet = $wallet;
     }
 
+    public function getId():string
+    {
+        return $this->id;
+    }
+
     /**
      * @return Money
      */

@@ -37,6 +37,14 @@ class BonusMoneyAdded
     }
 
     /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
      * @return BonusWalletCollection
      */
     public function getWallet(): BonusWalletCollection

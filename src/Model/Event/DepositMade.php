@@ -37,6 +37,14 @@ class DepositMade
     }
 
     /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
      * @return Money
      */
     public function getValue(): Money

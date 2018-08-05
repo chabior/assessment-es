@@ -13,10 +13,13 @@ class AggregateRootTranslator extends AggregateRoot
     public function restoreFromHistory(array $events, AggregateRoot $aggregateRoot)
     {
         foreach ($events as $event) {
-            $aggregateRoot->apply($event);
+            $aggregateRoot->apply(unserialize($event['event']));
         }
     }
 
     protected function apply($event)
+    {}
+
+    public function getId():string
     {}
 }

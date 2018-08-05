@@ -42,21 +42,26 @@ class Player extends AggregateRoot
         return $obj;
     }
 
+    public function getId():string
+    {
+        return $this->id;
+    }
+
     public function deposit(Money $deposit, ?DepositBonus $bonus)
     {
         $this->handleDeposit($deposit);
         $this->recordThat(new DepositMade($this->id, $deposit, $this->realMoneyWallet));
 
         if ($bonus) {
-            $this->addBonus($bonus);
+            $this->addBonus($bonus, $deposit);
         }
     }
 
-    public function addBonus(Bonus $bonus)
+    public function addBonus(Bonus $bonus, Money $deposit = null)
     {
         $this->handleBonus($bonus);
 
-        $this->recordThat(new BonusApplied($this->id, $bonus->getId(), $this->bonusWallet));
+        $this->recordThat(new BonusApplied($this->id, $bonus->getId(), $this->bonusWallet, $bonus->calculate($deposit)));
     }
 
     public function successSpin(Money $bet, Money $reward)
@@ -70,14 +75,16 @@ class Player extends AggregateRoot
 
         //add reward to wallets
         $wageredMoney = $reward;
-        if ($this->bonusWallet) {
+        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
             $wageredMoney = $this->bonusWallet->getWageredMoney($reward);
-
             if ($wageredMoney) {
                 $reward = $reward->subtract($wageredMoney);
                 $this->bonusWallet = $this->bonusWallet->add($reward);
                 $this->recordThat(new BonusMoneyAdded($this->id, $reward, $this->bonusWallet));
+            } else {
+                $wageredMoney = $reward;
             }
+            $this->bonusWallet = $this->bonusWallet->removeDepleted();
         }
 
         if ($wageredMoney) {
@@ -94,6 +101,9 @@ class Player extends AggregateRoot
         }
 
         $this->subtractBet($bet);
+        if ($this->bonusWallet) {
+            $this->bonusWallet = $this->bonusWallet->removeDepleted();
+        }
     }
 
     protected function apply($event): void
@@ -101,12 +111,27 @@ class Player extends AggregateRoot
         switch (get_class($event)) {
             case Registered::class:
                 $this->id = $event->getId();
+                $this->realMoneyWallet = new Wallet(new Money(0));
+                $this->bonusWallet = new BonusWalletCollection();
+                break;
+            case DepositMade::class:
+                $this->realMoneyWallet = $event->getWallet();
+                break;
+            case RealMoneySubtracted::class:
+            case RealMoneyAdded::class:
+                $this->realMoneyWallet = $event->getWallet();
+                break;
+            case BonusMoneySubtracted::class:
+            case BonusMoneyAdded::class:
+                $this->bonusWallet = $event->getWallet();
+                break;
+            case BonusApplied::class:
+                $this->bonusWallet = $event->getBonusWallet();
                 break;
             default:
                 throw new \InvalidArgumentException(
                     sprintf('Event %s is not handled!', get_class($event))
                 );
-
         }
     }
 
@@ -137,11 +162,11 @@ class Player extends AggregateRoot
 
     private function assertHasWallet()
     {
-        if (!$this->realMoneyWallet && !$this->bonusWallet) {
-            throw new \InvalidArgumentException('Can spin without money!');
-        }
-
-        if ($this->realMoneyWallet->isDepleted() && $this->bonusWallet->isDepleted()) {
+        if (
+            (!$this->realMoneyWallet || $this->realMoneyWallet->isDepleted())
+            &&
+            (!$this->bonusWallet || $this->bonusWallet->isDepleted())
+        ) {
             throw new \InvalidArgumentException('Can spin without money!');
         }
     }
@@ -149,7 +174,7 @@ class Player extends AggregateRoot
     private function hasSufficientMoney(Money $difference):bool
     {
         $difference = $this->realMoneyWallet->difference($difference);
-        if ($this->bonusWallet) {
+        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
             $difference = $this->bonusWallet->difference($difference);
         }
         return $difference->isLessOrEqualZero();

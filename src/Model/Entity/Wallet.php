@@ -56,4 +56,9 @@ class Wallet implements WalletInterface
     {
         return $this->current->isZero();
     }
+
+    public function getAmount():int
+    {
+        return $this->current->amount();
+    }
 }

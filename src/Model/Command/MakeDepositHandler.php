@@ -6,7 +6,7 @@ namespace App\Model\Command;
 use App\Infrastructure\BonusRepository;
 use App\Infrastructure\PlayerRepository;
 
-class LoginHandler
+class MakeDepositHandler
 {
     /**
      * @var PlayerRepository
@@ -29,13 +29,10 @@ class LoginHandler
         $this->bonusRepository = $bonusRepository;
     }
 
-    public function __invoke(Login $login)
+    public function __invoke(MakeDeposit $makeDeposit)
     {
-        $bonus = $this->bonusRepository->getLoginBonus();
-        if ($bonus) {
-            $player = $this->playerRepository->get($login->getPlayerId());
-            $player->addBonus($bonus);
-            $this->playerRepository->save($player);
-        }
+        $player = $this->playerRepository->get($makeDeposit->getPlayerId());
+        $player->deposit($makeDeposit->getDeposit(), $this->bonusRepository->getDepositBonus());
+        $this->playerRepository->save($player);
     }
 }

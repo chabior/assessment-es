@@ -76,8 +76,8 @@ class Money
         return $this->isLess(new self(0));
     }
 
-    public function inverse():Money
+    public function amount():int
     {
-        return new Money(-$this->amount);
+        return $this->amount;
     }
 }

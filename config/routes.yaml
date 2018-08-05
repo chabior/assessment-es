@@ -1,0 +1,19 @@
+app_home:
+    path: /
+    controller: App\Controller\PlayController::hudAction
+
+app_deposit:
+    path: /deposit
+    controller: App\Controller\PlayController::depositAction
+
+app_register:
+    path: /register
+    controller: App\Controller\PlayController::registerAction
+
+app_login:
+    path: /login
+    controller: App\Controller\PlayController::loginAction
+
+app_spin:
+    path: /spin
+    controller: App\Controller\PlayController::spinAction

@@ -412,4 +412,146 @@ class PlayerTest extends TestCase
         $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(0)));
         $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(10)));
     }
+
+    public function testBonus()
+    {
+        $deposit = new Money(25);
+        $player = Player::create('1');
+        $player->deposit($deposit, null);
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward($deposit),
+            1
+        );
+        $player->addBonus($loginBonus);
+
+        $player->successSpin(new Money(15), new Money(25));
+
+        $events = $this->popRecordedEvents($player);
+        $realMoneySubtracted = $events[3];
+        /**
+         * @var RealMoneySubtracted $realMoneySubtracted
+         */
+        $this->assertSame(RealMoneySubtracted::class, get_class($realMoneySubtracted));
+        $this->assertTrue($realMoneySubtracted->getValue()->isEqual(new Money(15)));
+        $this->assertTrue($realMoneySubtracted->getWallet()->valueEquals(new Money(10)));
+
+        $realMoneyAdded = $events[4];
+        /**
+         * @var RealMoneyAdded $realMoneyAdded
+         */
+        $this->assertSame(RealMoneyAdded::class, get_class($realMoneyAdded));
+        $this->assertTrue($realMoneyAdded->getValue()->isEqual(new Money(25)));
+        $this->assertTrue($realMoneyAdded->getWallet()->valueEquals(new Money(35)));
+    }
+
+    public function testNextBonusAfterDepleted()
+    {
+        $deposit = new Money(25);
+        $player = Player::create('1');
+        $player->deposit($deposit, null);
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward($deposit),
+            1
+        );
+        $player->addBonus($loginBonus);
+
+        $player->failSpin($deposit);
+        $player->failSpin($deposit);
+
+        $player->addBonus($loginBonus);
+
+        $events = $this->popRecordedEvents($player);
+
+        $bonusAppliedEvent = $events[5];
+        /**
+         * @var BonusApplied $bonusAppliedEvent
+         */
+        $this->assertSame(BonusApplied::class, get_class($bonusAppliedEvent));
+        $this->assertTrue($bonusAppliedEvent->getBonusWallet()->valueEquals(new Money(25)));
+    }
+
+    public function testMultipleLoginBonusAndSuccessSpin()
+    {
+        $deposit = new Money(25);
+        $player = Player::create('1');
+        $player->deposit($deposit, null);
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward($deposit),
+            1
+        );
+        $player->addBonus($loginBonus);
+        $player->addBonus($loginBonus);
+
+        $player->successSpin(new Money(15), new Money(25));
+
+        $events = $this->popRecordedEvents($player);
+        $this->assertCount(6, $events);
+
+        $bonusApplied = $events[3];
+        /**
+         * @var BonusApplied $bonusApplied
+         */
+        $this->assertSame(BonusApplied::class, get_class($bonusApplied));
+        $this->assertTrue($bonusApplied->getValue()->isEqual(new Money(25)));
+        $this->assertTrue($bonusApplied->getBonusWallet()->valueEquals(new Money(50)));
+
+        $realMoneyAddedEvent = $events[5];
+        /**
+         * @var RealMoneyAdded $realMoneyAddedEvent
+         */
+        $this->assertSame(RealMoneyAdded::class, get_class($realMoneyAddedEvent));
+        $this->assertTrue($realMoneyAddedEvent->getValue()->isEqual(new Money(25)));
+        $this->assertTrue($realMoneyAddedEvent->getWallet()->valueEquals(new Money(35)));
+    }
+
+    public function testFailSpinWithMultipleBonusesAndEmptyRealMoney()
+    {
+        $deposit = new Money(25);
+        $player = Player::create('1');
+        $player->deposit($deposit, null);
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward($deposit),
+            1
+        );
+        $player->addBonus($loginBonus);
+        $player->addBonus($loginBonus);
+
+        $player->failSpin(new Money(25));
+        $player->failSpin(new Money(10));
+
+        $events = $this->popRecordedEvents($player);
+        $this->assertCount(6, $events);
+
+        $bonusApplied = $events[3];
+        /**
+         * @var BonusApplied $bonusApplied
+         */
+        $this->assertSame(BonusApplied::class, get_class($bonusApplied));
+        $this->assertTrue($bonusApplied->getValue()->isEqual(new Money(25)));
+        $this->assertTrue($bonusApplied->getBonusWallet()->valueEquals(new Money(50)));
+
+        $realMoneySubtracted = $events[4];
+        /**
+         * @var RealMoneySubtracted $realMoneySubtracted
+         */
+        $this->assertSame(RealMoneySubtracted::class, get_class($realMoneySubtracted));
+        $this->assertTrue($realMoneySubtracted->getValue()->isEqual(new Money(25)));
+        $this->assertTrue($realMoneySubtracted->getWallet()->valueEquals(new Money(0)));
+
+        $bonusMoneySubtracted = $events[5];
+        /**
+         * @var BonusMoneySubtracted $bonusMoneySubtracted
+         */
+        $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
+        $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(10)));
+        $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(40)));
+    }
 }

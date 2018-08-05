@@ -1,0 +1,36 @@
+<html>
+    <head></head>
+    <body>
+        {% for message in app.flashes('error') %}
+            <div>
+                {{ message }}
+            </div>
+        {% endfor %}
+        <form method="post" action="{{ path('app_deposit') }}">
+            <input type="number" name="deposit" value="">
+            <input type="submit" value="Deposit">
+        </form>
+        <form method="post" action="{{ path('app_login') }}">
+            <input type="submit" value="Login">
+        </form>
+
+        <form method="post" action="{{ path('app_spin') }}">
+            <input type="number" name="bet" value="">
+            <input type="submit" value="Spin">
+        </form>
+        {% for message in app.flashes('spin') %}
+            <div>
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div>
+            <p>Money:</p>
+            <p>Real money: {{ player.real_money }}</p>
+            {% for wallet in player.bonus_wallets %}
+                <p>{{ wallet.money }}</p>
+            {% endfor %}
+
+        </div>
+    </body>
+</html>

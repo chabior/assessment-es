@@ -16,4 +16,6 @@ interface WalletInterface
     public function valueEquals(Money $money):bool;
 
     public function isDepleted():bool;
+
+    public function getAmount():int;
 }

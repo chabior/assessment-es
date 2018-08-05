@@ -48,10 +48,24 @@ class BonusWalletCollection implements WalletInterface
             $money = $wallet->difference($money);
             $obj->bonusWallets[$key] = $wallet->subtract($moneyCopy);
 
-            if ($money->isZero()) {
+            if ($money->isLessOrEqualZero()) {
                 break;
             }
         }
+
+        return $obj;
+    }
+
+    public function removeDepleted():BonusWalletCollection
+    {
+        $obj = clone $this;
+        foreach ($obj->bonusWallets as $key => $wallet) {
+            if ($wallet->isDepleted()) {
+                unset($obj->bonusWallets[$key]);
+            }
+        }
+
+        $obj->bonusWallets = array_values($obj->bonusWallets);
 
         return $obj;
     }
@@ -79,12 +93,24 @@ class BonusWalletCollection implements WalletInterface
                 $money = $wallet->getWageredMoney($money);
             }
 
-            if ($money && $money->isZero()) {
+            if (!$money || $money->isZero()) {
                 break;
             }
         }
 
         return $money;
+    }
+
+    public function getAmount(): int
+    {
+        return array_reduce($this->bonusWallets, function ($carry, BonusWallet $bonusWallet) {
+            return $bonusWallet->getAmount() + $carry;
+        }, 0);
+    }
+
+    public function getWallets():array
+    {
+        return $this->bonusWallets;
     }
 
     private function assertEmpty()

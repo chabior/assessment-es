@@ -4,9 +4,16 @@ namespace App\Model\Entity;
 
 
 use App\Model\ValueObject\Money;
+use Ramsey\Uuid\Uuid;
 
 class BonusWallet extends Wallet
 {
+
+    /**
+     * @var string
+     */
+    private $id;
+
     /**
      * @var Bonus[]
      */
@@ -17,6 +24,7 @@ class BonusWallet extends Wallet
         parent::__construct($bonus->calculate(null));
 
         $this->bonus = $bonus;
+        $this->id = Uuid::uuid4()->toString();
     }
 
     public function isWagered(Money $money)
@@ -31,5 +39,10 @@ class BonusWallet extends Wallet
         }
 
         return null;
+    }
+
+    public function getId():string
+    {
+        return $this->id;
     }
 }

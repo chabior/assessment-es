@@ -10,6 +10,8 @@ abstract class AggregateRoot
      */
     private $events = [];
 
+    abstract public function getId():string;
+
     abstract protected function apply($event);
 
     protected function recordThat($event)

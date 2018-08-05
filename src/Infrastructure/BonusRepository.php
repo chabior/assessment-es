@@ -6,6 +6,8 @@ namespace App\Infrastructure;
 
 use App\Model\Entity\Bonus;
 use App\Model\Entity\DepositBonus;
+use App\Model\ValueObject\FixedValueBonusReward;
+use App\Model\ValueObject\Money;
 
 class BonusRepository
 {
@@ -16,6 +18,11 @@ class BonusRepository
 
     public function getLoginBonus():?Bonus
     {
-        return null;
+        return new Bonus(
+            1,
+            'login',
+            new FixedValueBonusReward(new Money(25)),
+            1
+        );
     }
 }
