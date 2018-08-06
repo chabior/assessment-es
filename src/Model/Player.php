@@ -51,6 +51,10 @@ class Player extends AggregateRoot
 
     public function deposit(Money $deposit, ?DepositBonus $bonus)
     {
+        if ($deposit->isLessOrEqualZero()) {
+            throw new \InvalidArgumentException('Deposit should be greater than 0');
+        }
+        
         $this->handleDeposit($deposit);
         $this->recordThat(new DepositMade($this->id, $deposit, $this->realMoneyWallet));
 
@@ -68,6 +72,14 @@ class Player extends AggregateRoot
 
     public function spin(Money $bet, Money $reward = null)
     {
+        if ($bet->isLessOrEqualZero()) {
+            throw new \InvalidArgumentException('Bet must be greater than 0');
+        }
+
+        if ($reward && $reward->isLessOrEqualZero()) {
+            throw new \InvalidArgumentException('Reward must be greater than 0');
+        }
+
         $this->assertHasWallet();
         if (!$this->hasSufficientMoney($bet)) {
             throw new \InvalidArgumentException('Player has no sufficient money to place bet!');
