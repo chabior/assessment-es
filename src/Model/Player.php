@@ -64,7 +64,7 @@ class Player extends AggregateRoot
         $this->recordThat(new BonusApplied($this->id, $bonus->getId(), $this->bonusWallet, $bonus->calculate($deposit)));
     }
 
-    public function successSpin(Money $bet, Money $reward)
+    public function spin(Money $bet, Money $reward = null)
     {
         $this->assertHasWallet();
         if (!$this->hasSufficientMoney($bet)) {
@@ -73,34 +73,10 @@ class Player extends AggregateRoot
 
         $this->subtractBet($bet);
 
-        //add reward to wallets
-        $wageredMoney = $reward;
-        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
-            $wageredMoney = $this->bonusWallet->getWageredMoney($reward);
-            if ($wageredMoney) {
-                $reward = $reward->subtract($wageredMoney);
-                $this->bonusWallet = $this->bonusWallet->add($reward);
-                $this->recordThat(new BonusMoneyAdded($this->id, $reward, $this->bonusWallet));
-            } else {
-                $wageredMoney = $reward;
-            }
-            $this->bonusWallet = $this->bonusWallet->removeDepleted();
+        if ($reward) {
+            $this->assignReward($reward);
         }
 
-        if ($wageredMoney) {
-            $this->realMoneyWallet = $this->realMoneyWallet->add($wageredMoney);
-            $this->recordThat(new RealMoneyAdded($this->id, $wageredMoney, $this->realMoneyWallet));
-        }
-    }
-
-    public function failSpin(Money $bet)
-    {
-        $this->assertHasWallet();
-        if (!$this->hasSufficientMoney($bet)) {
-            throw new \InvalidArgumentException('Player has no sufficient money to place bet!');
-        }
-
-        $this->subtractBet($bet);
         if ($this->bonusWallet) {
             $this->bonusWallet = $this->bonusWallet->removeDepleted();
         }
@@ -201,6 +177,27 @@ class Player extends AggregateRoot
         if ($difference->isGreaterThanZero()) {
             $this->bonusWallet = $this->bonusWallet->subtract($difference);
             $this->recordThat(new BonusMoneySubtracted($this->id, $difference, $this->bonusWallet));
+        }
+    }
+
+    private function assignReward(Money $reward)
+    {
+        //add reward to wallets
+        $wageredMoney = $reward;
+        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
+            $wageredMoney = $this->bonusWallet->getWageredMoney($reward);
+            if ($wageredMoney) {
+                $reward = $reward->subtract($wageredMoney);
+                $this->bonusWallet = $this->bonusWallet->add($reward);
+                $this->recordThat(new BonusMoneyAdded($this->id, $reward, $this->bonusWallet));
+            } else {
+                $wageredMoney = $reward;
+            }
+        }
+
+        if ($wageredMoney) {
+            $this->realMoneyWallet = $this->realMoneyWallet->add($wageredMoney);
+            $this->recordThat(new RealMoneyAdded($this->id, $wageredMoney, $this->realMoneyWallet));
         }
     }
 }

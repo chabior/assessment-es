@@ -24,12 +24,7 @@ class SpinHandler
     public function __invoke(Spin $spin)
     {
         $player = $this->playerRepository->get($spin->getPlayerId());
-        if ($spin->getReward()) {
-            $player->successSpin($spin->getBet(), $spin->getReward());
-        } else {
-            $player->failSpin($spin->getBet());
-        }
-
+        $player->spin($spin->getBet(), $spin->getReward());
         $this->playerRepository->save($player);
     }
 

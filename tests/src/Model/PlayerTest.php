@@ -137,7 +137,7 @@ class PlayerTest extends TestCase
 
         $reward = new Money(20);
         $bet = new Money(10);
-        $player->successSpin($bet, $reward);
+        $player->spin($bet, $reward);
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(4, $events);
@@ -167,8 +167,8 @@ class PlayerTest extends TestCase
 
         $reward = new Money(20);
         $bet = new Money(10);
-        $player->successSpin($bet, $reward);
-        $player->successSpin($bet, $reward);
+        $player->spin($bet, $reward);
+        $player->spin($bet, $reward);
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(6, $events);
@@ -190,7 +190,7 @@ class PlayerTest extends TestCase
     {
         $player = Player::create('1');
         $reward = new Money(10);
-        $player->successSpin(new Money(10), $reward);
+        $player->spin(new Money(10), $reward);
     }
 
     public function testFailSpinWithoutBonuses()
@@ -200,7 +200,7 @@ class PlayerTest extends TestCase
         $player->deposit($deposit, null);
 
         $bet = new Money(10);
-        $player->failSpin($bet);
+        $player->spin($bet);
         $events = $this->popRecordedEvents($player);
 
         $this->assertCount(3, $events);
@@ -220,8 +220,8 @@ class PlayerTest extends TestCase
         $player->deposit($deposit, null);
 
         $bet = new Money(10);
-        $player->failSpin($bet);
-        $player->failSpin($bet);
+        $player->spin($bet);
+        $player->spin($bet);
         $events = $this->popRecordedEvents($player);
 
         $this->assertCount(4, $events);
@@ -244,7 +244,7 @@ class PlayerTest extends TestCase
         $player->deposit($deposit, null);
 
         $bet = new Money(10);
-        $player->failSpin($bet);
+        $player->spin($bet);
     }
 
     public function testSuccessSpinWithBonuses()
@@ -263,7 +263,7 @@ class PlayerTest extends TestCase
 
         $reward = new Money(15);
         $bet = new Money(10);
-        $player->successSpin($bet, $reward);
+        $player->spin($bet, $reward);
 
         $events = $this->popRecordedEvents($player);
 
@@ -292,15 +292,15 @@ class PlayerTest extends TestCase
         $player->addBonus($loginBonus);
 
         $bet = new Money(105);
-        $player->failSpin($bet);
+        $player->spin($bet);
 
         $secondBet = new Money(5);
         $reward = new Money(20);
-        $player->successSpin($secondBet, $reward);
+        $player->spin($secondBet, $reward);
 
         $thirdBet = new Money(20);
         $secondReward = new Money(30);
-        $player->successSpin($thirdBet, $secondReward);
+        $player->spin($thirdBet, $secondReward);
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(12, $events);
@@ -383,10 +383,10 @@ class PlayerTest extends TestCase
         $player->addBonus($loginBonus);
 
         $bet = new Money(50);
-        $player->failSpin($bet);
+        $player->spin($bet);
 
         $bet = new Money(60);
-        $player->failSpin($bet);
+        $player->spin($bet);
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(6, $events);
@@ -426,7 +426,7 @@ class PlayerTest extends TestCase
         );
         $player->addBonus($loginBonus);
 
-        $player->successSpin(new Money(15), new Money(25));
+        $player->spin(new Money(15), new Money(25));
 
         $events = $this->popRecordedEvents($player);
         $realMoneySubtracted = $events[3];
@@ -459,8 +459,8 @@ class PlayerTest extends TestCase
         );
         $player->addBonus($loginBonus);
 
-        $player->failSpin($deposit);
-        $player->failSpin($deposit);
+        $player->spin($deposit);
+        $player->spin($deposit);
 
         $player->addBonus($loginBonus);
 
@@ -488,7 +488,7 @@ class PlayerTest extends TestCase
         $player->addBonus($loginBonus);
         $player->addBonus($loginBonus);
 
-        $player->successSpin(new Money(15), new Money(25));
+        $player->spin(new Money(15), new Money(25));
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(6, $events);
@@ -524,8 +524,8 @@ class PlayerTest extends TestCase
         $player->addBonus($loginBonus);
         $player->addBonus($loginBonus);
 
-        $player->failSpin(new Money(25));
-        $player->failSpin(new Money(10));
+        $player->spin(new Money(25));
+        $player->spin(new Money(10));
 
         $events = $this->popRecordedEvents($player);
         $this->assertCount(6, $events);
