@@ -3,6 +3,7 @@
 namespace App\Model\Command;
 
 
+use App\Exception\ModelException;
 use App\Model\ValueObject\Money;
 
 class MakeDeposit
@@ -25,7 +26,7 @@ class MakeDeposit
     public function __construct(string $playerId, Money $deposit)
     {
         if ($deposit->isLessOrEqualZero()) {
-            throw new \InvalidArgumentException('Deposit should be greater than 1!');
+            throw ModelException::depositGreaterThanZero();
         }
 
         $this->playerId = $playerId;

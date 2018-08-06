@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\ES\CommandBus;
+use App\Exception\ModelException;
 use App\Model\Command\Login;
 use App\Model\Command\MakeDeposit;
 use App\Model\Command\Register;
@@ -51,7 +52,7 @@ class PlayController extends Controller
                 $this->getPlayerId(),
                 new Money((int)$request->request->get('deposit'))
             ));
-        } catch (\InvalidArgumentException $e) {
+        } catch (ModelException $e) {
             $this->addFlash('error', $e->getMessage());
         }
 
@@ -79,7 +80,7 @@ class PlayController extends Controller
 
             $this->addFlash('spin', $reward ? 'Won' : 'Lost');
 
-        } catch (\InvalidArgumentException $e) {
+        } catch (ModelException $e) {
             $this->addFlash('error', $e->getMessage());
         }
 

@@ -4,6 +4,7 @@ namespace App\Model;
 
 
 use App\ES\AggregateRoot;
+use App\Exception\ModelException;
 use App\Model\Entity\Bonus;
 use App\Model\Entity\BonusWalletCollection;
 use App\Model\Entity\DepositBonus;
@@ -52,9 +53,9 @@ class Player extends AggregateRoot
     public function deposit(Money $deposit, ?DepositBonus $bonus)
     {
         if ($deposit->isLessOrEqualZero()) {
-            throw new \InvalidArgumentException('Deposit should be greater than 0');
+            throw ModelException::depositGreaterThanZero();
         }
-        
+
         $this->handleDeposit($deposit);
         $this->recordThat(new DepositMade($this->id, $deposit, $this->realMoneyWallet));
 
@@ -73,16 +74,16 @@ class Player extends AggregateRoot
     public function spin(Money $bet, Money $reward = null)
     {
         if ($bet->isLessOrEqualZero()) {
-            throw new \InvalidArgumentException('Bet must be greater than 0');
+            throw ModelException::betGreaterThanZero();
         }
 
         if ($reward && $reward->isLessOrEqualZero()) {
-            throw new \InvalidArgumentException('Reward must be greater than 0');
+            throw ModelException::rewardGreaterThanZero();
         }
 
         $this->assertHasWallet();
         if (!$this->hasSufficientMoney($bet)) {
-            throw new \InvalidArgumentException('Player has no sufficient money to place bet!');
+            throw ModelException::playerHasNoSufficientFund();
         }
 
         $this->subtractBet($bet);
@@ -118,9 +119,7 @@ class Player extends AggregateRoot
                 $this->bonusWallet = $event->getBonusWallet();
                 break;
             default:
-                throw new \InvalidArgumentException(
-                    sprintf('Event %s is not handled!', get_class($event))
-                );
+                throw ModelException::notHandledEvent(get_class($event));
         }
     }
 
@@ -142,7 +141,7 @@ class Player extends AggregateRoot
     private function assertHasWallet()
     {
         if ($this->realMoneyWallet->isDepleted() && $this->bonusWallet->isDepleted()) {
-            throw new \InvalidArgumentException('Can spin without money!');
+            throw ModelException::noMoneyInWallet();
         }
     }
 

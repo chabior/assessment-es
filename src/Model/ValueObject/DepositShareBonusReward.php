@@ -3,6 +3,8 @@
 namespace App\Model\ValueObject;
 
 
+use App\Exception\ModelException;
+
 class DepositShareBonusReward implements BonusReward
 {
     /**
@@ -22,7 +24,7 @@ class DepositShareBonusReward implements BonusReward
     public function calculate(?Money $base): Money
     {
         if (empty($base)) {
-            throw new \InvalidArgumentException('Deposit value is required to calculate reward!');
+            throw ModelException::depositValueRequired();
         }
 
         return $base->multiply($this->share * 100)->divide(100);

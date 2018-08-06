@@ -24,7 +24,6 @@ class BonusWalletCollection implements WalletInterface
 
     public function add(Money $money): WalletInterface
     {
-        $this->assertEmpty();
         $obj = clone $this;
 
         foreach ($obj->bonusWallets as $key => $wallet) {
@@ -39,8 +38,6 @@ class BonusWalletCollection implements WalletInterface
 
     public function difference(Money $money): Money
     {
-        $this->assertEmpty();
-
         foreach ($this->bonusWallets as $wallet) {
             $money = $wallet->difference($money);
             if ($money->isLessOrEqualZero()) {
@@ -53,7 +50,6 @@ class BonusWalletCollection implements WalletInterface
 
     public function subtract(Money $money): WalletInterface
     {
-        $this->assertEmpty();
         $obj = clone $this;
 
         foreach ($obj->bonusWallets as $key => $wallet) {
@@ -126,12 +122,5 @@ class BonusWalletCollection implements WalletInterface
     public function getWallets():array
     {
         return $this->bonusWallets;
-    }
-
-    private function assertEmpty()
-    {
-        if ($this->isDepleted()) {
-            throw new \InvalidArgumentException('Cant add money to empty wallet');
-        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Model\Command;
 
 
+use App\Exception\ModelException;
 use App\Model\ValueObject\Money;
 
 class Spin
@@ -31,7 +32,7 @@ class Spin
     public function __construct(string $playerId, Money $bet, ?Money $reward)
     {
         if ($bet->isLessOrEqualZero()) {
-            throw new \InvalidArgumentException('Bet should be greater than 1!');
+            throw ModelException::betGreaterThanZero();
         }
 
         $this->playerId = $playerId;

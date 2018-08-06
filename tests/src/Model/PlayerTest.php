@@ -3,6 +3,7 @@
 namespace App\Tests\Model;
 
 
+use App\Exception\ModelException;
 use App\Model\Entity\Bonus;
 use App\Model\Entity\DepositBonus;
 use App\Model\Event\BonusApplied;
@@ -109,7 +110,7 @@ class PlayerTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \App\Exception\ModelException
      */
     public function testSuccessSpinWithoutDeposit()
     {
@@ -150,7 +151,7 @@ class PlayerTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \App\Exception\ModelException
      */
     public function testFailSpinWithInsufficientFounds()
     {
