@@ -25,11 +25,19 @@
         {% endfor %}
 
         <div>
-            <p>Money:</p>
-            <p>Real money: {{ player.real_money }}</p>
-            {% for wallet in player.bonus_wallets %}
-                <p>{{ wallet.money }}</p>
-            {% endfor %}
+            <ul>
+                <li>Money: {{ player.money }}</li>
+                <li>Real money: {{ player.real_money }}</li>
+                <li>
+                    Bonus Wallets:
+                    <ul>
+                        {% for wallet in player.bonus_wallets %}
+                            <li>{{  wallet.money }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+            </ul>
 
         </div>
     </body>

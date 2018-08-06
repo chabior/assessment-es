@@ -28,7 +28,12 @@ class PlayerProjection
         $this->connection = $connection;
     }
 
-    public function getPlayerMoney(string $playerId)
+    /**
+     * @todo refactor
+     * @param string $playerId
+     * @return array
+     */
+    public function getPlayerMoney(string $playerId):array
     {
         $qb = $this->connection->createQueryBuilder();
         $qb
@@ -50,7 +55,11 @@ class PlayerProjection
                 ->setParameter('playerId', $playerId)
             ;
 
-            $player['bonus_wallets'] = $qb->execute();
+            $player['bonus_wallets'] = $qb->execute()->fetchAll();
+
+            $player['money'] = array_reduce($player['bonus_wallets'], function ($carry, $wallet) {
+                return $carry + $wallet['money'];
+            }, $player['real_money']);
         }
 
         return $player;
