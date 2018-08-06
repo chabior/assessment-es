@@ -10,10 +10,10 @@
     - for the first visit player is auto registered
     - to clean env and start over call `bin/console app:clear` command
     - to run tests call `vendor/phpunit/phpunit/phpunit --no-configuration App\Tests\Model\PlayerTest tests/src/Model/PlayerTest.php`
-
+    - to add or remove bonuses edit `Infrastructure/BonusRepository.php` file. 
+    
 3. Description     
     Assessment is modeled using EventSourcing and CQRS ideas.       
 
 4. Todo
-    - add custom exception classes
     - move deposits to database
