@@ -32,13 +32,13 @@ class BonusWallet extends Wallet
         return $this->bonus->isWagered($this->current->add($money));
     }
 
-    public function getWageredMoney(Money $amount):?Money
+    public function getWageredMoney(Money $amount):Money
     {
-        if ($this->bonus->isWagered($amount)) {
+        if ($this->bonus->isWagered($this->current->add($amount))) {
             return $this->bonus->subtractWagering($this->current->add($amount));
         }
 
-        return null;
+        return new Money(0);
     }
 
     public function getId():string

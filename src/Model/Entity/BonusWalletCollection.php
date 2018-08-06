@@ -96,19 +96,15 @@ class BonusWalletCollection implements WalletInterface
         return empty($this->bonusWallets);
     }
 
-    public function getWageredMoney(Money $money):?Money
+    public function getWageredMoney(Money $money):Money
     {
         foreach ($this->bonusWallets as $wallet) {
             if ($wallet->isWagered($money)) {
-                $money = $wallet->getWageredMoney($money);
-            }
-
-            if (!$money || $money->isZero()) {
-                break;
+                return $wallet->getWageredMoney($money);
             }
         }
 
-        return $money;
+        return new Money(0);
     }
 
     public function getAmount(): int

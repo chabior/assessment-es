@@ -267,9 +267,9 @@ class PlayerTest extends TestCase
 
         $events = $this->popRecordedEvents($player);
 
-        $this->assertCount(6, $events);
+        $this->assertCount(5, $events);
 
-        $realMoneyAdded = $events[5];
+        $realMoneyAdded = $events[4];
         /**
          * @var RealMoneyAdded $realMoneyAdded
          */
@@ -588,5 +588,40 @@ class PlayerTest extends TestCase
         $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
         $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(17)));
         $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(21)));
+    }
+
+    public function testWageringMultiplier()
+    {
+        $player = Player::create('1');
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward(new Money(25)),
+            2
+        );
+        $player->addBonus($loginBonus);
+
+        $player->spin(new Money(10), new Money(50));
+
+        $events = $this->popRecordedEvents($player);
+
+        $this->assertCount(5, $events);
+
+        $bonusMoneyAdded = $events[3];
+        /**
+         * @var BonusMoneyAdded $bonusMoneyAdded
+         */
+        $this->assertSame(BonusMoneyAdded::class, get_class($bonusMoneyAdded));
+        $this->assertTrue($bonusMoneyAdded->getValue()->isEqual(new Money(35)));
+        $this->assertTrue($bonusMoneyAdded->getWallet()->valueEquals(new Money(50)));
+
+        $realMoneyAddedEvent = $events[4];
+        /**
+         * @var RealMoneyAdded $realMoneyAddedEvent
+         */
+        $this->assertSame(RealMoneyAdded::class, get_class($realMoneyAddedEvent));
+        $this->assertTrue($realMoneyAddedEvent->getValue()->isEqual(new Money(15)));
+        $this->assertTrue($realMoneyAddedEvent->getWallet()->valueEquals(new Money(15)));
+
     }
 }

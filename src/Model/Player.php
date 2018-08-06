@@ -173,16 +173,14 @@ class Player extends AggregateRoot
         $wageredMoney = $reward;
         if (!$this->bonusWallet->isDepleted()) {
             $wageredMoney = $this->bonusWallet->getWageredMoney($reward);
-            if ($wageredMoney) {
-                $reward = $reward->subtract($wageredMoney);
+            $reward = $reward->subtract($wageredMoney);
+            if ($reward->isGreaterThanZero()) {
                 $this->bonusWallet = $this->bonusWallet->add($reward);
                 $this->recordThat(new BonusMoneyAdded($this->id, $reward, $this->bonusWallet));
-            } else {
-                $wageredMoney = $reward;
             }
         }
 
-        if ($wageredMoney) {
+        if ($wageredMoney->isGreaterThanZero()) {
             $this->realMoneyWallet = $this->realMoneyWallet->add($wageredMoney);
             $this->recordThat(new RealMoneyAdded($this->id, $wageredMoney, $this->realMoneyWallet));
         }
