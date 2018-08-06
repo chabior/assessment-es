@@ -17,3 +17,4 @@
 4. Todo
     - add custom exception classes
     - refactor tests
+    - move deposits to database

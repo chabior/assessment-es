@@ -13,7 +13,13 @@ class BonusRepository
 {
     public function getDepositBonus():?DepositBonus
     {
-        return null;
+        return new DepositBonus(
+            2,
+            'deposit',
+            new FixedValueBonusReward(new Money(10)),
+            1,
+            new Money(1)
+        );
     }
 
     public function getLoginBonus():?Bonus
