@@ -46,10 +46,14 @@ class PlayController extends Controller
 
     public function depositAction(Request $request)
     {
-        $this->commandBus->dispatchCommand(new MakeDeposit(
-            $this->getPlayerId(),
-            new Money((int)$request->request->get('deposit'))
-        ));
+        try {
+            $this->commandBus->dispatchCommand(new MakeDeposit(
+                $this->getPlayerId(),
+                new Money((int)$request->request->get('deposit'))
+            ));
+        } catch (\InvalidArgumentException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
 
         return $this->redirect($this->generateUrl('app_home'));
     }

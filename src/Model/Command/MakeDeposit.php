@@ -24,6 +24,10 @@ class MakeDeposit
      */
     public function __construct(string $playerId, Money $deposit)
     {
+        if ($deposit->isLessOrEqualZero()) {
+            throw new \InvalidArgumentException('Deposit should be greater than 1!');
+        }
+
         $this->playerId = $playerId;
         $this->deposit = $deposit;
     }

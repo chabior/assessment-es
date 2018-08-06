@@ -30,6 +30,10 @@ class Spin
      */
     public function __construct(string $playerId, Money $bet, ?Money $reward)
     {
+        if ($bet->isLessOrEqualZero()) {
+            throw new \InvalidArgumentException('Bet should be greater than 1!');
+        }
+
         $this->playerId = $playerId;
         $this->bet = $bet;
         $this->reward = $reward;
