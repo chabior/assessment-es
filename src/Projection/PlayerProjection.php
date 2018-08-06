@@ -126,15 +126,7 @@ class PlayerProjection
             $stmt->execute();
         }
 
-        $qb = $this->connection->createQueryBuilder();
-        $qb
-            ->delete('player_bonus_projection')
-            ->andWhere('player_id = :playerId')
-            ->andWhere('money = 0')
-            ->setParameter('playerId', $bonusMoneyAdded->getId())
-        ;
-
-        $qb->execute();
+        $this->removeEmptyWallets($bonusMoneyAdded->getId());
     }
 
     public function onBonusMoneySubtracted(BonusMoneySubtracted $bonusMoneySubtracted)
@@ -151,6 +143,8 @@ class PlayerProjection
             $stmt->bindValue('money', $wallet->getAmount());
             $stmt->execute();
         }
+
+        $this->removeEmptyWallets($bonusMoneySubtracted->getId());
     }
 
     public function onRealMoneyAdded(RealMoneyAdded $realMoneyAdded)
@@ -178,6 +172,19 @@ class PlayerProjection
 
             ->setParameter('playerId', $realMoneySubtracted->getId())
             ->setParameter('realMoneySubtracted', $realMoneySubtracted->getValue()->amount())
+        ;
+
+        $qb->execute();
+    }
+
+    private function removeEmptyWallets(int $playerId)
+    {
+        $qb = $this->connection->createQueryBuilder();
+        $qb
+            ->delete('player_bonus_projection')
+            ->andWhere('player_id = :playerId')
+            ->andWhere('money = 0')
+            ->setParameter('playerId', $playerId)
         ;
 
         $qb->execute();

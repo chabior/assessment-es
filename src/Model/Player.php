@@ -38,6 +38,8 @@ class Player extends AggregateRoot
     {
         $obj = new self();
         $obj->id = $id;
+        $obj->realMoneyWallet = new Wallet(new Money(0));
+        $obj->bonusWallet = new BonusWalletCollection();
         $obj->recordThat(new Registered($id));
         return $obj;
     }
@@ -77,9 +79,7 @@ class Player extends AggregateRoot
             $this->assignReward($reward);
         }
 
-        if ($this->bonusWallet) {
-            $this->bonusWallet = $this->bonusWallet->removeDepleted();
-        }
+        $this->bonusWallet = $this->bonusWallet->removeDepleted();
     }
 
     protected function apply($event): void
@@ -100,6 +100,7 @@ class Player extends AggregateRoot
             case BonusMoneySubtracted::class:
             case BonusMoneyAdded::class:
                 $this->bonusWallet = $event->getWallet();
+                $this->bonusWallet = $this->bonusWallet->removeDepleted();
                 break;
             case BonusApplied::class:
                 $this->bonusWallet = $event->getBonusWallet();
@@ -113,21 +114,11 @@ class Player extends AggregateRoot
 
     private function handleDeposit(Money $deposit)
     {
-        if (empty($this->realMoneyWallet)) {
-            $this->realMoneyWallet = new Wallet(
-                $deposit
-            );
-        } else {
-            $this->realMoneyWallet = $this->realMoneyWallet->add($deposit);
-        }
+        $this->realMoneyWallet = $this->realMoneyWallet->add($deposit);
     }
 
     private function handleBonus(Bonus $bonus)
     {
-        if (empty($this->bonusWallet)) {
-            $this->bonusWallet = new BonusWalletCollection();
-        }
-
         $this->bonusWallet = $this->bonusWallet->addBonus($bonus);
     }
 
@@ -138,11 +129,7 @@ class Player extends AggregateRoot
 
     private function assertHasWallet()
     {
-        if (
-            (!$this->realMoneyWallet || $this->realMoneyWallet->isDepleted())
-            &&
-            (!$this->bonusWallet || $this->bonusWallet->isDepleted())
-        ) {
+        if ($this->realMoneyWallet->isDepleted() && $this->bonusWallet->isDepleted()) {
             throw new \InvalidArgumentException('Can spin without money!');
         }
     }
@@ -150,7 +137,7 @@ class Player extends AggregateRoot
     private function hasSufficientMoney(Money $difference):bool
     {
         $difference = $this->realMoneyWallet->difference($difference);
-        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
+        if (!$this->bonusWallet->isDepleted()) {
             $difference = $this->bonusWallet->difference($difference);
         }
         return $difference->isLessOrEqualZero();
@@ -184,7 +171,7 @@ class Player extends AggregateRoot
     {
         //add reward to wallets
         $wageredMoney = $reward;
-        if ($this->bonusWallet && !$this->bonusWallet->isDepleted()) {
+        if (!$this->bonusWallet->isDepleted()) {
             $wageredMoney = $this->bonusWallet->getWageredMoney($reward);
             if ($wageredMoney) {
                 $reward = $reward->subtract($wageredMoney);

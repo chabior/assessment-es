@@ -61,4 +61,9 @@ class Wallet implements WalletInterface
     {
         return $this->current->amount();
     }
+
+    public function compare(Wallet $wallet):int
+    {
+        return $wallet->getAmount() <=> $this->getAmount();
+    }
 }

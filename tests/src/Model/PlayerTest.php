@@ -554,4 +554,39 @@ class PlayerTest extends TestCase
         $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(10)));
         $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(40)));
     }
+
+    public function testSubtractFromBonusWallets()
+    {
+        $player = Player::create('1');
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward(new Money(25)),
+            1
+        );
+        $player->addBonus($loginBonus);
+        $player->addBonus($loginBonus);
+
+        $player->spin(new Money(12));
+        $player->spin(new Money(17));
+
+        $events = $this->popRecordedEvents($player);
+        $this->assertCount(5, $events);
+
+        $bonusMoneySubtracted = $events[3];
+        /**
+         * @var BonusMoneySubtracted $bonusMoneySubtracted
+         */
+        $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
+        $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(12)));
+        $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(38)));
+
+        $bonusMoneySubtracted = $events[4];
+        /**
+         * @var BonusMoneySubtracted $bonusMoneySubtracted
+         */
+        $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
+        $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(17)));
+        $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(21)));
+    }
 }

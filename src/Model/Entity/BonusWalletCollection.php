@@ -35,7 +35,14 @@ class BonusWalletCollection implements WalletInterface
     {
         $this->assertEmpty();
 
-        return $this->bonusWallets[0]->difference($money);
+        foreach ($this->bonusWallets as $wallet) {
+            $money = $wallet->difference($money);
+            if ($money->isLessOrEqualZero()) {
+                break;
+            }
+        }
+
+        return $money;
     }
 
     public function subtract(Money $money): WalletInterface
@@ -46,6 +53,9 @@ class BonusWalletCollection implements WalletInterface
         foreach ($obj->bonusWallets as $key => $wallet) {
             $moneyCopy = clone $money;
             $money = $wallet->difference($money);
+            if ($money->isGreaterThanZero()) {
+                $moneyCopy = new Money($wallet->getAmount());
+            }
             $obj->bonusWallets[$key] = $wallet->subtract($moneyCopy);
 
             if ($money->isLessOrEqualZero()) {
