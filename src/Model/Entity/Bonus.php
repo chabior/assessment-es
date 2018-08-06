@@ -53,7 +53,12 @@ class Bonus
 
     public function subtractWagering(Money $walletValue): Money
     {
-        return $walletValue->subtract($this->calculateWageringMoney());
+        $wageringLimit = $this->calculateWageringMoney();
+        if ($walletValue->isGreaterOrEqual($wageringLimit)) {
+            return new Money(0);
+        }
+
+        return $wageringLimit->subtract($walletValue);
     }
 
     private function calculateWageringMoney():Money

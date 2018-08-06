@@ -622,6 +622,61 @@ class PlayerTest extends TestCase
         $this->assertSame(RealMoneyAdded::class, get_class($realMoneyAddedEvent));
         $this->assertTrue($realMoneyAddedEvent->getValue()->isEqual(new Money(15)));
         $this->assertTrue($realMoneyAddedEvent->getWallet()->valueEquals(new Money(15)));
+    }
 
+    public function testWageringWithMultipleBonusWallets()
+    {
+        $player = Player::create('1');
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward(new Money(25)),
+            2
+        );
+        $player->addBonus($loginBonus);
+        $loginBonus = new Bonus(
+            1,
+            'login-bonus',
+            new FixedValueBonusReward(new Money(30)),
+            2
+        );
+        $player->addBonus($loginBonus);
+
+        $player->spin(new Money(20));
+        $player->spin(new Money(20), new Money(100));
+        $events = $this->popRecordedEvents($player);
+        $this->assertCount(7, $events);
+
+        $bonusMoneySubtracted = $events[3];
+        /**
+         * @var BonusMoneySubtracted $bonusMoneySubtracted
+         */
+        $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
+        $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(20)));
+        $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(35)));
+
+        $bonusMoneySubtracted = $events[4];
+        /**
+         * @var BonusMoneySubtracted $bonusMoneySubtracted
+         */
+        $this->assertSame(BonusMoneySubtracted::class, get_class($bonusMoneySubtracted));
+        $this->assertTrue($bonusMoneySubtracted->getValue()->isEqual(new Money(20)));
+        $this->assertTrue($bonusMoneySubtracted->getWallet()->valueEquals(new Money(15)));
+
+        $bonusMoneyAdded = $events[5];
+        /**
+         * @var BonusMoneyAdded $bonusMoneyAdded
+         */
+        $this->assertSame(BonusMoneyAdded::class, get_class($bonusMoneyAdded));
+        $this->assertTrue($bonusMoneyAdded->getValue()->isEqual(new Money(95)));
+        $this->assertTrue($bonusMoneyAdded->getWallet()->valueEquals(new Money(110)));
+
+        $realMoneyAddedEvent = $events[6];
+        /**
+         * @var RealMoneyAdded $realMoneyAddedEvent
+         */
+        $this->assertSame(RealMoneyAdded::class, get_class($realMoneyAddedEvent));
+        $this->assertTrue($realMoneyAddedEvent->getValue()->isEqual(new Money(5)));
+        $this->assertTrue($realMoneyAddedEvent->getWallet()->valueEquals(new Money(5)));
     }
 }

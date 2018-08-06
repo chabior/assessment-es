@@ -25,9 +25,15 @@ class BonusWalletCollection implements WalletInterface
     public function add(Money $money): WalletInterface
     {
         $this->assertEmpty();
-
         $obj = clone $this;
-        $obj->bonusWallets[0] = $obj->bonusWallets[0]->add($money);
+
+        foreach ($obj->bonusWallets as $key => $wallet) {
+            if ($money->isGreaterThanZero()) {
+                $obj->bonusWallets[$key] = $wallet->add($wallet->getWageredMoney());
+                $money = $money->subtract($wallet->getWageredMoney());
+            }
+        }
+
         return $obj;
     }
 
@@ -96,15 +102,18 @@ class BonusWalletCollection implements WalletInterface
         return empty($this->bonusWallets);
     }
 
+    /**
+     * Returns how much money we can add to bonus wallets
+     *
+     * @param Money $money
+     * @return Money
+     */
     public function getWageredMoney(Money $money):Money
     {
         foreach ($this->bonusWallets as $wallet) {
-            if ($wallet->isWagered($money)) {
-                return $wallet->getWageredMoney($money);
-            }
+            $money = $money->subtract($wallet->getWageredMoney());
         }
-
-        return new Money(0);
+        return $money;
     }
 
     public function getAmount(): int

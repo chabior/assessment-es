@@ -27,18 +27,14 @@ class BonusWallet extends Wallet
         $this->id = Uuid::uuid4()->toString();
     }
 
-    public function isWagered(Money $money)
+    public function isWagered():bool
     {
-        return $this->bonus->isWagered($this->current->add($money));
+        return $this->bonus->isWagered($this->current);
     }
 
-    public function getWageredMoney(Money $amount):Money
+    public function getWageredMoney():Money
     {
-        if ($this->bonus->isWagered($this->current->add($amount))) {
-            return $this->bonus->subtractWagering($this->current->add($amount));
-        }
-
-        return new Money(0);
+        return $this->bonus->subtractWagering($this->current);
     }
 
     public function getId():string
